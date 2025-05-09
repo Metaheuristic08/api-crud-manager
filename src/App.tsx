@@ -28,12 +28,12 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <AuthProvider>
-            <IonApp>
-              <BrowserRouter>
+          <TooltipProvider>
+            <AuthProvider>
+              <IonApp>
                 <Suspense fallback={<div>Cargando...</div>}>
                   <Routes>
                     <Route path="/login" element={<LoginPage />} />
@@ -49,14 +49,14 @@ function App() {
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
-              </BrowserRouter>
-            </IonApp>
-          </AuthProvider>
+                <Toaster />
+                <Sonner />
+              </IonApp>
+            </AuthProvider>
+          </TooltipProvider>
         </ThemeProvider>
-        <Toaster />
-        <Sonner />
-      </TooltipProvider>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   );
 }
 
