@@ -14,21 +14,21 @@ import {
   IonLoading
 } from '@ionic/react';
 import { useAuth } from '@/context/AuthContext';
-import { useHistory } from 'react-router';
+import { useNavigate, Link } from 'react-router-dom';
 
 const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showLoading, setShowLoading] = useState(false);
   const { register } = useAuth();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setShowLoading(true);
       await register(email, password);
-      history.push('/tabs/dashboard');
+      navigate('/tabs/dashboard');
     } catch (error) {
       console.error('Register error:', error);
     } finally {
