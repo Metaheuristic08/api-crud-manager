@@ -4,7 +4,6 @@ import {
   IonContent, 
   IonPage, 
   IonItem, 
-  IonLabel, 
   IonInput, 
   IonButton,
   IonCard,
@@ -25,6 +24,13 @@ const LoginPage: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validación básica
+    if (!email || !password) {
+      alert("Por favor, complete todos los campos");
+      return;
+    }
+    
     try {
       setShowLoading(true);
       await login(email, password);
@@ -46,9 +52,9 @@ const LoginPage: React.FC = () => {
             </IonCardHeader>
             <IonCardContent>
               <form onSubmit={handleLogin}>
-                <IonItem className="mb-4">
-                  <IonLabel position="floating">Correo electrónico</IonLabel>
+                <IonItem>
                   <IonInput
+                    label="Correo electrónico"
                     type="email"
                     value={email}
                     onIonChange={(e) => setEmail(e.detail.value!)}
@@ -56,8 +62,8 @@ const LoginPage: React.FC = () => {
                   />
                 </IonItem>
                 <IonItem className="mb-6">
-                  <IonLabel position="floating">Contraseña</IonLabel>
                   <IonInput
+                    label="Contraseña"
                     type="password"
                     value={password}
                     onIonChange={(e) => setPassword(e.detail.value!)}
