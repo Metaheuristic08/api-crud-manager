@@ -1,7 +1,8 @@
 
 import { Suspense, lazy } from "react";
-import { IonApp, setupIonicReact } from '@ionic/react';
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { IonApp, setupIonicReact, IonRouterOutlet } from '@ionic/react';
+import { IonReactRouter } from '@ionic/react-router';
+import { Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -35,14 +36,14 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <TooltipProvider>
-            <AuthProvider>
-              <IonApp>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <TooltipProvider>
+          <AuthProvider>
+            <IonApp>
+              <IonReactRouter>
                 <Suspense fallback={<div className="flex items-center justify-center h-screen">Cargando...</div>}>
-                  <Routes>
+                  <IonRouterOutlet>
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/tabs" element={<TabsPage />}>
@@ -54,16 +55,16 @@ function App() {
                     </Route>
                     <Route path="/" element={<Index />} />
                     <Route path="*" element={<NotFound />} />
-                  </Routes>
+                  </IonRouterOutlet>
                 </Suspense>
                 <Toaster />
                 <Sonner />
-              </IonApp>
-            </AuthProvider>
-          </TooltipProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+              </IonReactRouter>
+            </IonApp>
+          </AuthProvider>
+        </TooltipProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 
