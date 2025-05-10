@@ -33,6 +33,7 @@ const ProductsPage: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     loadProducts();
@@ -41,10 +42,14 @@ const ProductsPage: React.FC = () => {
   const loadProducts = async () => {
     try {
       setLoading(true);
+      setLoadError(null);
+      console.log('Fetching products...');
       const data = await productsApi.getAll();
+      console.log('Products data:', data);
       setProducts(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error loading products:', error);
+      setLoadError('Error al cargar los productos. Por favor, intente nuevamente.');
     } finally {
       setLoading(false);
     }
@@ -57,11 +62,14 @@ const ProductsPage: React.FC = () => {
 
   const handleDelete = async (productId: number) => {
     try {
+      setLoading(true);
       await productsApi.delete(productId);
       setProducts(products.filter((p) => p.product_id !== productId));
       setShowAlert(false);
     } catch (error) {
       console.error('Error deleting product:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,6 +88,17 @@ const ProductsPage: React.FC = () => {
         {loading ? (
           <div className="flex justify-center items-center h-full">
             <IonLoading isOpen={loading} message="Cargando productos..." />
+          </div>
+        ) : loadError ? (
+          <div className="p-4">
+            <IonCard>
+              <IonCardContent>
+                <p className="text-center text-red-600">{loadError}</p>
+                <div className="flex justify-center mt-4">
+                  <IonButton onClick={loadProducts}>Reintentar</IonButton>
+                </div>
+              </IonCardContent>
+            </IonCard>
           </div>
         ) : (
           <div className="ion-padding">

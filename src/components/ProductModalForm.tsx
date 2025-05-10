@@ -1,121 +1,111 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
-  IonButton, 
-  IonContent, 
+  IonModal, 
   IonHeader, 
+  IonToolbar, 
   IonTitle, 
-  IonToolbar,
-  IonItem,
-  IonLabel,
-  IonInput,
-  IonSelect,
-  IonSelectOption,
-  IonModal,
-  IonLoading
+  IonContent, 
+  IonButton, 
+  IonItem, 
+  IonLabel, 
+  IonInput, 
+  IonSelect, 
+  IonSelectOption 
 } from '@ionic/react';
 import { Product } from '@/types';
 import { productsApi } from '@/services/api';
 
 interface ProductModalFormProps {
   isOpen: boolean;
+  isEdit?: boolean;
+  product?: Product | null;
   onClose: () => void;
   onSave: (product: Product) => void;
-  product?: Product | null;
-  isEdit?: boolean;
 }
 
 const ProductModalForm: React.FC<ProductModalFormProps> = ({ 
   isOpen, 
+  isEdit = false, 
+  product = null, 
   onClose, 
-  onSave,
-  product,
-  isEdit = false
+  onSave 
 }) => {
   const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
-  const [image, setImage] = useState('');
+  const [price, setPrice] = useState<number>(0);
+  const [imageUrl, setImageUrl] = useState('');
   const [state, setState] = useState('Activo');
+  const [formError, setFormError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   useEffect(() => {
     if (product && isEdit) {
       setName(product.product_name);
-      setPrice(product.product_price.toString());
-      setImage(product.product_image);
+      setPrice(product.product_price);
+      setImageUrl(product.product_image || '');
       setState(product.product_state);
     } else {
       resetForm();
     }
-  }, [product, isEdit, isOpen]);
+  }, [product, isEdit]);
 
   const resetForm = () => {
     setName('');
-    setPrice('');
-    setImage('https://emprendepyme.net/wp-content/uploads/2023/03/cualidades-producto-1200x900.jpg');
+    setPrice(0);
+    setImageUrl('');
     setState('Activo');
-    setError('');
+    setFormError('');
   };
 
-  const handleSubmit = async () => {
-    if (!name.trim() || !price.trim()) {
-      setError('Nombre y precio son obligatorios');
+  const handleSaveProduct = async () => {
+    if (!name.trim()) {
+      setFormError('El nombre del producto es obligatorio');
       return;
     }
 
-    const numPrice = parseFloat(price);
-    
-    if (isNaN(numPrice) || numPrice <= 0) {
-      setError('El precio debe ser un número válido mayor que 0');
+    if (price <= 0) {
+      setFormError('El precio debe ser mayor que 0');
       return;
     }
 
-    setLoading(true);
-    
     try {
+      setLoading(true);
+      
       if (isEdit && product) {
-        // Update existing product
         const updatedData = {
           product_id: product.product_id,
           product_name: name,
-          product_price: numPrice,
-          product_image: image || 'https://emprendepyme.net/wp-content/uploads/2023/03/cualidades-producto-1200x900.jpg',
+          product_price: price,
+          product_image: imageUrl || 'https://emprendepyme.net/wp-content/uploads/2023/03/cualidades-producto-1200x900.jpg',
           product_state: state
         };
         
-        const response = await productsApi.update(updatedData);
-        
-        if (response) {
-          onSave({
-            ...updatedData,
-            product_id: product.product_id
-          });
-        }
+        await productsApi.update(updatedData);
+        onSave(updatedData);
       } else {
-        // Add new product
         const newData = {
           product_name: name,
-          product_price: numPrice,
-          product_image: image || 'https://emprendepyme.net/wp-content/uploads/2023/03/cualidades-producto-1200x900.jpg'
+          product_price: price,
+          product_image: imageUrl || 'https://emprendepyme.net/wp-content/uploads/2023/03/cualidades-producto-1200x900.jpg'
         };
         
         const response = await productsApi.add(newData);
         
         if (response && response.product_id) {
-          onSave({
+          const newProduct = {
             ...newData,
             product_id: response.product_id,
             product_state: 'Activo'
-          });
+          };
+          
+          onSave(newProduct);
         }
       }
       
       resetForm();
-      onClose();
-    } catch (err) {
-      console.error('Error saving product:', err);
-      setError('Error al guardar el producto. Inténtelo de nuevo.');
+    } catch (error) {
+      console.error('Error saving product:', error);
+      setFormError('Error al guardar el producto');
     } finally {
       setLoading(false);
     }
@@ -130,9 +120,9 @@ const ProductModalForm: React.FC<ProductModalFormProps> = ({
         </IonToolbar>
       </IonHeader>
       <IonContent className="ion-padding">
-        {error && (
+        {formError && (
           <div className="bg-red-100 text-red-700 p-3 rounded mb-4">
-            {error}
+            {formError}
           </div>
         )}
         
@@ -150,16 +140,17 @@ const ProductModalForm: React.FC<ProductModalFormProps> = ({
           <IonInput
             type="number"
             value={price}
-            onIonChange={(e) => setPrice(e.detail.value!)}
+            onIonChange={(e) => setPrice(Number(e.detail.value))}
             required
           />
         </IonItem>
         
         <IonItem>
-          <IonLabel position="floating">URL de la imagen</IonLabel>
+          <IonLabel position="floating">URL de imagen</IonLabel>
           <IonInput
-            value={image}
-            onIonChange={(e) => setImage(e.detail.value!)}
+            value={imageUrl}
+            onIonChange={(e) => setImageUrl(e.detail.value!)}
+            placeholder="https://ejemplo.com/imagen.jpg"
           />
         </IonItem>
         
@@ -174,12 +165,14 @@ const ProductModalForm: React.FC<ProductModalFormProps> = ({
         )}
         
         <div className="ion-padding">
-          <IonButton expand="block" onClick={handleSubmit} disabled={loading}>
-            Guardar
+          <IonButton 
+            expand="block" 
+            onClick={handleSaveProduct}
+            disabled={loading}
+          >
+            {loading ? 'Guardando...' : (isEdit ? 'Actualizar' : 'Guardar')}
           </IonButton>
         </div>
-        
-        <IonLoading isOpen={loading} message="Guardando..." />
       </IonContent>
     </IonModal>
   );

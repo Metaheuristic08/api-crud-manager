@@ -24,7 +24,14 @@ const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Inicializar QueryClient
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      staleTime: 1000 * 60 * 5, // 5 minutos
+    },
+  },
+});
 
 function App() {
   return (
@@ -34,7 +41,7 @@ function App() {
           <TooltipProvider>
             <AuthProvider>
               <IonApp>
-                <Suspense fallback={<div>Cargando...</div>}>
+                <Suspense fallback={<div className="flex items-center justify-center h-screen">Cargando...</div>}>
                   <Routes>
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
