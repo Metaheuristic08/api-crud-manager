@@ -11,6 +11,10 @@ const api = axios.create({
   auth: {
     username: API_USER,
     password: API_PASS
+  },
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
   }
 });
 
@@ -18,7 +22,7 @@ const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Error:', error);
+    console.error('API Error:', error.response || error);
     return Promise.reject(error);
   }
 );
@@ -103,3 +107,5 @@ export const providersApi = {
     return response.data;
   }
 };
+
+export default api;
